@@ -24,86 +24,85 @@ let host = {};
 io.on('connection', function(socket) {
 
     console.log("ON CONNECTION!");
-    //generates a random string as key to create rooms in socket
-    function generateRoomKey() {
-        let roomKey = "";
-        let roomKeyLength = 6;
-        let possible = "abcdefghijklmnopqrstuvwxyz";
 
-        for (let i = 0; i < roomKeyLength; i++) {
-            roomKey += possible.charAt(Math.floor(Math.random() * possible.length));
-        };
-        return roomKey;
-    }
-
-
-    function authenticate(playerID, roomName, firstPlayer, gameBoard) {
-        io.to(playerID).emit('authenticate', {
-            roomName: roomName,
-            player1: firstPlayer,
-            gameBoard: gameBoard
-        });
+    //check if the three elements are the same or not
+    function checkSame(elementOne, elementTwo, elementThree, checkCharacter) {
+        if ((elementOne == elementTwo) && (elementTwo == elementThree) && (elementThree == checkCharacter)) {
+            return true;
+        }
+        return false;
     }
 
     function checkWin(gameboard) {
         let board = gameboard;
         let message = "";
         let gameState = true;
-        if (board[0][0] == 'X' && board[0][1] == 'X' && board[0][2] == 'X') {
+
+        //check the rows of the grid
+        for (let i = 0; i < board.length; i++) {
+            if (checkSame(board[i][0], board[i][1], board[i][2], 'X')) {
+                message = "Player One Wins!"
+                gameState = false
+                break;
+            }
+            if (checkSame(board[i][0], board[i][1], board[i][2], 'O')) {
+                message = "Player Two Wins!"
+                gameState = false
+                break;
+            }
+        }
+
+        //check the columns of the grid
+        for (let i = 0; i < board.length; i++) {
+            if (checkSame(board[0][i], board[1][i], board[2][i], 'X')) {
+                message = "Player One Wins!"
+                gameState = false
+                break;
+            }
+            if (checkSame(board[0][i], board[1][i], board[2][i], 'O')) {
+                message = "Player Two Wins!"
+                gameState = false
+                break;
+            }
+        }
+
+        if (checkSame(board[0][0], board[1][1], board[2][2], 'X')) {
             message = "Player One Wins!"
             gameState = false
-        } else if (board[1][0] == 'X' && board[1][1] == 'X' && board[1][2] == 'X') {
-            message = "Player One Wins!"
-            gameState = false
-        } else if (board[2][0] == 'X' && board[2][1] == 'X' && board[2][2] === 'X') {
-            message = "Player One Wins!"
-            gameState = false
-        } else if (board[0][0] == 'O' && board[0][1] == 'O' && board[0][2] === 'O') {
-            message = "Player Two Wins!"
-            gameState = false
-        } else if (board[1][0] == 'O' && board[1][1] == 'O' && board[1][2] === 'O') {
-            message = "Player Two Wins!"
-            gameState = false
-        } else if (board[2][0] == 'O' && board[2][1] == 'O' && board[2][2] === 'O') {
-            message = "Player Two Wins!"
-            gameState = false
-        } else if (board[0][0] == 'X' && board[1][0] == 'X' && board[2][0] === 'X') {
-            message = "Player One Wins!"
-            gameState = false
-        } else if (board[0][1] == 'X' && board[1][1] == 'X' && board[2][1] === 'X') {
-            message = "Player One Wins!"
-            gameState = false
-        } else if (board[0][2] == 'X' && board[1][2] == 'X' && board[2][2] === 'X') {
-            message = "Player One Wins!"
-            gameState = false
-        } else if (board[0][0] == 'O' && board[1][0] == 'O' && board[2][0] === 'O') {
-            message = "Player Two Wins!"
-            gameState = false
-        } else if (board[0][1] == 'O' && board[1][1] == 'O' && board[2][1] === 'O') {
-            message = "Player Two Wins!"
-            gameState = false
-        } else if (board[0][2] == 'O' && board[1][2] == 'O' && board[2][2] === 'O') {
-            message = "Player Two Wins!"
-            gameState = false
-        } else if (board[0][0] == 'X' && board[1][1] == 'X' && board[2][2] === 'X') {
-            message = "Player One Wins!"
-            gameState = false
-        } else if (board[0][2] == 'X' && board[1][1] == 'X' && board[2][0] === 'X') {
-            message = "Player One Wins!"
-            gameState = false
-        } else if (board[0][0] == 'O' && board[1][1] == 'O' && board[2][2] === 'O') {
-            message = "Player Two Wins!"
-            gameState = false
-        } else if (board[0][2] == 'O' && board[1][1] == 'O' && board[2][0] === 'O') {
+        }
+
+        if (checkSame(board[0][0], board[1][1], board[2][2], 'O')) {
             message = "Player Two Wins!"
             gameState = false
         }
-        return { message: message, gameState: gameState };
 
-        // else if (turn === 9) {
-        //   message = "It's a Draw!"
-        //   gameState = false
-        // }
+        if (checkSame(board[0][2], board[1][1], board[2][0], 'X')) {
+            message = "Player One Wins!"
+            gameState = false
+        }
+
+        if (checkSame(board[0][2], board[1][1], board[2][0], 'O')) {
+            message = "Player Two Wins!"
+            gameState = false
+        }
+
+        if (!gameState) {
+            return { message: message, gameState: gameState };
+        }
+
+        gameState = false;
+        message = "IT'S A DRAW!"
+        loop1:
+            for (let i = 0; i < board.length; i++) {
+                loop2: for (let j = 0; j < board[i].length; j++) {
+                    if (board[i][j] == '') {
+                        //if empty cells are found, continue the game
+                        gameState = true;
+                        break loop1;
+                    }
+                }
+            }
+        return { message: message, gameState: gameState };
     }
 
     function resetBoard(gameRoom) {
@@ -118,25 +117,14 @@ io.on('connection', function(socket) {
             gameBoardStore[roomKey]["gameBoard"] = gameBoard;
             gameBoardStore[roomKey]["player1"] = playerOne;
             socket.join(roomKey);
-            console.log(gameBoardStore);
+            console.log(roomKey);
+            console.log(gameBoardStore[roomKey].gameBoard);
         }
-
-
-        // let player1ID = socket.id;
-        // let playerOneName = userName;
-        // socket.join(gameRoom);
-        // gameBoardStore[gameRoom] = {board: gameBoard, playerOne: playerOneName};
-        // host[player1ID] = gameRoom;
-        // console.log(gameBoardStore[gameRoom]);
-
-        // authenticate(player1ID, gameRoom, true, gameBoardStore[gameRoom].board);
     });
 
     socket.on("click", function(data) {
         gameBoardStore[data.gameCode].gameBoard[data.row][data.col] = data.value;
-        console.log(data)
-            // socket.broadcast.emit("board update", gameBoardStore[data.gameCode].gameBoard);
-            //toggle player turn here
+        //toggle player turn here
         let playerTurn = 1;
         if (data.value == 'X') {
             playerTurn = 2
@@ -152,7 +140,7 @@ io.on('connection', function(socket) {
         let winResult = checkWin(gameBoardStore[data.gameCode].gameBoard);
         console.log(winResult.gameState);
         if (!winResult.gameState) {
-            console.log("win!");
+            console.log(winResult.message);
             io.to(data.gameCode).emit("game end", winResult.message)
         }
     })
@@ -169,30 +157,10 @@ io.on('connection', function(socket) {
                 io.in(roomCode).emit("game start", "haha")
             }
         }
-        // if(joinObjects.joinKey in gameBoardStore) {
-        //   let gameRoom = joinObjects.joinKey;
-        //   let player2ID = socket.id;
-        //   let playerTwoName = joinObjects.userName;
-        //   gameBoardStore[gameRoom]['playerTwo'] = playerTwoName;
-        //   socket.join(gameRoom);
-
-        //   authenticate(player2ID, gameRoom, false, gameBoardStore[gameRoom].board);
-        //   gameBoardStore[gameRoom]['playerTurn'] = 1;
-        //   console.log(gameBoardStore[gameRoom]);
-        //   io.in(gameRoom).emit('game start', {
-        //     playerOneName: gameBoardStore[gameRoom].playerOne,
-        //     playerTwoName: playerTwoName,
-        //     gameBegin: true,
-        //     playerTurn: gameBoardStore[gameRoom].playerTurn
-        //   });
-        // } else {
-        //   io.to(socket.id).emit('joinError', "Oops, can't join that room");
-        // }
     });
 
     socket.on('update board', function(data) {
         gameBoardStore[data.gameRoom].board = data.gameBoard;
-        //emit the gameboard back
         checkWin(gameBoardStore[data.gameRoom].board);
         io.in(data.gameRoom).emit('get board updates', {
             game: gameBoardStore[data.gameRoom].board,
@@ -205,23 +173,18 @@ io.on('connection', function(socket) {
         io.in(data).emit('reset update', )
     });
 
-    //socket when a user logs out
     socket.on('disconnect', function() {
-        console.log(socket.id);
-        if (socket.id in host) {
-            delete gameBoardStore[host[socket.id]];
-            console.log(gameBoardStore);
-        }
+        console.log("DISCONNECTED")
+        Object.keys(gameBoardStore).forEach((gameCode) => {
+            console.log(gameCode)
+            if (gameBoardStore[gameCode].player1 == socket.id || gameBoardStore[gameCode].player2 == socket.id) {
+                delete gameBoardStore[gameCode]
+                console.log("ROOM ", gameCode, " IS REMOVED")
+                return;
+            }
+        });
     });
 });
 
 app.use(express.static(__dirname + '/src'));
-
-app.use('/haha', express.static('public'));
-
-// app.listen(process.env.PORT || 1337);
-
-// server.listen(app.get('port'), function() {
-//   console.log('Server running at localhost', app.get('port'))
-// });
 server.listen(3000);
