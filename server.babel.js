@@ -2,13 +2,8 @@ import express from 'express';
 const app = require('express')();
 const server = require('http').createServer(app);
 const io = require('socket.io')(server);
-const async = require('async');
 
-let gameBoard = [
-    ['', '', ''],
-    ['', '', ''],
-    ['', '', '']
-];
+
 let gameBoardStore = {};
 // gameBoardStore should be something like this
 // {
@@ -19,10 +14,13 @@ let gameBoardStore = {};
 //     playerTurn: 1/2
 //   }
 // }
-let host = {};
 
 io.on('connection', function(socket) {
-
+    let blankBoard = [
+        ['', '', ''],
+        ['', '', ''],
+        ['', '', '']
+    ];
     console.log("ON CONNECTION!");
 
     //check if the three elements are the same or not
@@ -106,7 +104,7 @@ io.on('connection', function(socket) {
     }
 
     function resetBoard(gameRoom) {
-        gameBoardStore[gameRoom].board = gameBoard;
+        gameBoardStore[gameRoom].board = blankBoard;
     }
 
     socket.on('create room', function(roomKey) {
@@ -114,10 +112,11 @@ io.on('connection', function(socket) {
             console.log("CREATE ROOM!")
             let playerOne = socket.id;
             gameBoardStore[roomKey] = {};
-            gameBoardStore[roomKey]["gameBoard"] = gameBoard;
+            gameBoardStore[roomKey]["gameBoard"] = blankBoard;
             gameBoardStore[roomKey]["player1"] = playerOne;
             socket.join(roomKey);
             console.log(roomKey);
+            console.log("blank board is ", blankBoard);
             console.log(gameBoardStore[roomKey].gameBoard);
         }
     });
@@ -140,6 +139,7 @@ io.on('connection', function(socket) {
         let winResult = checkWin(gameBoardStore[data.gameCode].gameBoard);
         console.log(winResult.gameState);
         if (!winResult.gameState) {
+            gameBoardStore[data.gameCode].gameBoard = blankBoard;
             console.log(winResult.message);
             io.to(data.gameCode).emit("game end", winResult.message)
         }
