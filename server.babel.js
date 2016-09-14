@@ -23,6 +23,7 @@ let host = {};
 
 io.on('connection', function(socket) {
 
+    console.log("ON CONNECTION!");
     //generates a random string as key to create rooms in socket
     function generateRoomKey() {
         let roomKey = "";
@@ -111,6 +112,7 @@ io.on('connection', function(socket) {
 
     socket.on('create room', function(roomKey) {
         if (roomKey != null && roomKey != "") {
+            console.log("CREATE ROOM!")
             let playerOne = socket.id;
             gameBoardStore[roomKey] = {};
             gameBoardStore[roomKey]["gameBoard"] = gameBoard;
