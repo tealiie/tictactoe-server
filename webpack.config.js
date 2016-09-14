@@ -10,7 +10,7 @@ module.exports = {
   devtool: debug ? "inline-sourcemap" : null,
   devServer: {
     inoine: true,
-    port: 1337
+    port: 3000
   },
   entry: "./js/client.js",
   output: {
