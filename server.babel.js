@@ -116,8 +116,9 @@ io.on('connection', function(socket) {
             gameBoardStore[roomKey]["player1"] = playerOne;
             socket.join(roomKey);
             console.log(roomKey);
-            console.log("blank board is ", blankBoard);
             console.log(gameBoardStore[roomKey].gameBoard);
+            console.log("SENDING ROOM CREATED")
+            io.to(socket.id).emit("room created", true);
         }
     });
 
