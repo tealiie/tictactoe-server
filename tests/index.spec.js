@@ -169,4 +169,39 @@ describe("The tic tac toe test", function() {
             })
         })
     });
+
+    it('should be a tie game', function(done) {
+        var count = 0;
+        var client1 = io.connect(socketURL, options);
+        var board = [];
+        var playerTurn = 1;
+        client1.emit("create room", roomCode)
+        client1.on("room created", function(data) {
+            var client2 = io.connect(socketURL, options);
+            client2.emit("join room", roomCode)
+            client1.on("game start", function(data) {
+
+                client2.on("game end", function(data) {
+                    should(data).be.eql("IT'S A DRAW!");
+                    client1.disconnect();
+                    client2.disconnect();
+                    done();
+                })
+
+                 
+                client1.emit("click", { gameCode: roomCode, row: 0, col: 0, value: 'X' });
+                client2.emit("click", { gameCode: roomCode, row: 0, col: 1, value: 'O' });
+                client1.emit("click", { gameCode: roomCode, row: 1, col: 0, value: 'X' });
+
+                client2.emit("click", { gameCode: roomCode, row: 1, col: 1, value: 'O' });
+                client1.emit("click", { gameCode: roomCode, row: 2, col: 1, value: 'X' });
+                client2.emit("click", { gameCode: roomCode, row: 2, col: 0, value: 'O' });
+
+                client1.emit("click", { gameCode: roomCode, row: 0, col: 2, value: 'X' });
+                client2.emit("click", { gameCode: roomCode, row: 1, col: 2, value: 'O' });
+                client1.emit("click", { gameCode: roomCode, row: 2, col: 2, value: 'X' });
+
+            })
+        })
+    });
 });
