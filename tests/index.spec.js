@@ -71,31 +71,102 @@ describe("The tic tac toe test", function() {
     it('player 2 make a move, and player 1 should receive the update', function(done) {
         var count = 0;
         var client1 = io.connect(socketURL, options);
-
+        var board = [];
+        var playerTurn = 1;
         client1.emit("create room", roomCode)
         client1.on("room created", function(data) {
             var client2 = io.connect(socketURL, options);
             client2.emit("join room", roomCode)
             client1.on("game start", function(data) {
                 client2.on("board update", function(data) {
-                    if (data.playerTurn != 2) {
-                        should(data.gameBoard).be.eql([
+                    board = data.gameBoard;
+                    playerTurn = data.playerTurn;
+                })
+
+                client1.emit("click", { gameCode: roomCode, row: 0, col: 0, value: 'X' });
+                count++;
+                client2.emit("click", { gameCode: roomCode, row: 0, col: 1, value: 'O' });
+                count++;
+                setTimeout(function() {
+                    if (count == 2) {
+                        should(board).be.eql([
                             ['X', 'O', ''],
                             ['', '', ''],
                             ['', '', '']
                         ]);
-                        should(data.gameBoard).be.a.Array;
-                        should(data.playerTurn).be.exactly(1)
+                        should(board).be.a.Array;
+                        should(playerTurn).be.exactly(1)
                         client1.disconnect();
                         client2.disconnect();
                         done();
                     }
+                }, 100)
+            })
+        })
+    });
+
+    it('player 1 should win', function(done) {
+        var count = 0;
+        var client1 = io.connect(socketURL, options);
+        var board = [];
+        var playerTurn = 1;
+        client1.emit("create room", roomCode)
+        client1.on("room created", function(data) {
+            var client2 = io.connect(socketURL, options);
+            client2.emit("join room", roomCode)
+            client1.on("game start", function(data) {
+                client2.on("board update", function(data) {
+                    board = data.gameBoard;
+                    playerTurn = data.playerTurn;
+                })
+
+                client2.on("game end", function(data) {
+                    should(data).be.eql("Player One Wins!");
+                    client1.disconnect();
+                    client2.disconnect();
+                    done();
                 })
 
                 client1.emit("click", { gameCode: roomCode, row: 0, col: 0, value: 'X' });
-                client2.emit("click", { gameCode: roomCode, row: 0, col: 1, value: 'O' })
+                client2.emit("click", { gameCode: roomCode, row: 0, col: 1, value: 'O' });
+                client1.emit("click", { gameCode: roomCode, row: 1, col: 0, value: 'X' });
+                client2.emit("click", { gameCode: roomCode, row: 1, col: 1, value: 'O' });
+                client1.emit("click", { gameCode: roomCode, row: 2, col: 0, value: 'X' });
+
             })
         })
+    });
 
+    it('player 2 should win', function(done) {
+        var count = 0;
+        var client1 = io.connect(socketURL, options);
+        var board = [];
+        var playerTurn = 1;
+        client1.emit("create room", roomCode)
+        client1.on("room created", function(data) {
+            var client2 = io.connect(socketURL, options);
+            client2.emit("join room", roomCode)
+            client1.on("game start", function(data) {
+                client2.on("board update", function(data) {
+                    board = data.gameBoard;
+                    playerTurn = data.playerTurn;
+                })
+
+                client2.on("game end", function(data) {
+                    should(data).be.eql("Player Two Wins!");
+                    client1.disconnect();
+                    client2.disconnect();
+                    done();
+                })
+
+                client1.emit("click", { gameCode: roomCode, row: 0, col: 0, value: 'X' });
+                client2.emit("click", { gameCode: roomCode, row: 0, col: 1, value: 'O' });
+                client1.emit("click", { gameCode: roomCode, row: 1, col: 0, value: 'X' });
+                client2.emit("click", { gameCode: roomCode, row: 1, col: 1, value: 'O' });
+                client1.emit("click", { gameCode: roomCode, row: 2, col: 2, value: 'X' });
+                client2.emit("click", { gameCode: roomCode, row: 2, col: 1, value: 'O' });
+
+            })
+        })
     });
 });
